@@ -33,7 +33,7 @@ var data = [
 ];
 
 var height = 800;
-var width = 1000;
+var width = height;
 
 var newData = [];
 
@@ -82,7 +82,7 @@ var selection = d3.select('svg')
   .append('rect')
   .attr('x',function(d,i) { return widthScale(i) })
   .attr('y',height)
-  .attr('width',function(d,i) {return width/newData.length-1})
+  .attr('width',(width/newData.length-1))
   .style('fill','#fff');
 
 var i = 0;
@@ -91,25 +91,33 @@ setInterval(function() {
     .transition()
     .duration(500)
     .delay(function(d, i) { return i * 20; });
+
+  var yMod = function(d,i) {return 0};
+
+  var heightFunctor = function(d,i) {return 0;}
   switch(i % 3) {
     case 0: 
-      trans
-        .style('fill',function(d,y) { return colorScale(pageviewScale(d.pageviews))})
-        .attr('y',function(d,i) { return height-pageviewScale(d.pageviews); })
-        .attr('height',function(d,i) { return pageviewScale(d.pageviews); });
+      heightFunctor = function(d,i) { return pageviewScale(d.pageviews); };
+      trans.attr('transform','rotate(0,0,0)');
+      yMod = function(d,i) {return heightFunctor(d,i);};
       break;
     case 1:
-      trans
-        .style('fill',function(d,y) { return colorScale(visitorsScale(d.visitors))})
-        .attr('y',function(d,i) { return height-visitorsScale(d.visitors); })
-        .attr('height',function(d,i) { return visitorsScale(d.visitors); });
+      heightFunctor = function(d,i) { return visitorsScale(d.visitors); };
+      trans.attr('transform','rotate(90,0,0)');
+      yMod = function(d,i) {return heightFunctor(d,i)+height};
       break;
     case 2:
-      trans
-        .style('fill',function(d,y) { return colorScale(durationScale(d.duration))})
-        .attr('y',function(d,i) { return height-durationScale(d.duration); })
-        .attr('height',function(d,i) { return durationScale(d.duration); });
+      heightFunctor = function(d,i) { return durationScale(d.duration); };
+      trans.attr('transform','rotate(0,0,0)');
+      yMod = function(d,i) {return height;};
       break;
   }
+
+
+  trans
+    .style('fill',function(d,y) { return colorScale(heightFunctor(d,i))})
+    .attr('y',function(d,i) { return height-yMod(d,i); })
+    .attr('height',function(d,i) { return heightFunctor(d,i)});
+
   i++;
 },1500);
